@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Shop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f2f2f2; }
+
+    /* HEADER */
+    .header {
+      background: #1a1a2e; padding: 15px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .logo { color: #fff; font-size: 1.5rem; font-weight: bold; }
+    .location { color: #aaa; font-size: 0.85rem; margin-top: 2px; }
+    .header .right { display: flex; align-items: center; gap: 15px; }
+    .cart-btn {
+      background: #e94560; color: white; border: none;
+      padding: 10px 20px; border-radius: 25px; cursor: pointer;
+      font-weight: bold; font-size: 0.9rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .user-name { color: #fff; font-size: 0.9rem; }
+    .badge { background: white; color: #e94560; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; font-weight: bold; }
+
+    /* BANNER */
+    .banner { background: linear-gradient(135deg, #1a1a2e, #e94560); padding: 30px 20px; color: white; }
+    .banner h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .banner p { color: rgba(255,255,255,0.8); font-size: 0.95rem; }
+
+    /* SEARCH */
+    .search-box { padding: 15px 20px; background: white; border-bottom: 1px solid #eee; }
+    .search-box input {
+      width: 100%; padding: 12px 20px; border-radius: 25px;
+      border: 1px solid #ddd; font-size: 1rem; outline: none; background: #f9f9f9;
+    }
+
+    /* CATEGORIES */
+    .categories { padding: 20px; background: white; margin-bottom: 10px; }
+    .categories h2 { font-size: 1.2rem; margin-bottom: 15px; color: #333; }
+    .cat-list { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; }
+    .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; min-width: 70px; }
+    .cat-icon { width: 60px; height: 60px; border-radius: 50%; background: #f2f2f2; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; transition: transform 0.2s; border: 2px solid transparent; }
+    .cat-item.active .cat-icon { border-color: #e94560; background: #fff0f3; }
+    .cat-name { font-size: 0.75rem; color: #555; text-align: center; }
+
+    /* SECTIONS */
+    .section { padding: 20px; }
+    .section-title { font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .h-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+
+    /* RECOMMENDED */
+    .rec-card { min-width: 200px; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s; }
+    .rec-card:hover { transform: translateY(-3px); }
+    .rec-img { height: 100px; background: linear-gradient(135deg, #1a1a2e, #0f3460); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .rec-info { padding: 10px; }
+    .rec-name { font-size: 0.9rem; font-weight: bold; color: #333; }
+    .rec-bar { font-size: 0.75rem; color: #999; margin: 3px 0; }
+    .rec-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+    .rec-price { color: #e94560; font-weight: bold; font-size: 0.95rem; }
+    .rec-rating { color: #f5a623; font-size: 0.8rem; }
+
+    /* PRODUCTS GRID */
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+    .product-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s; }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-img { width: 100%; height: 130px; background: linear-gradient(135deg, #1a1a2e, #0f3460); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .product-info { padding: 12px; }
+    .product-name { font-size: 0.9rem; font-weight: bold; color: #333; margin-bottom: 2px; }
+    .product-bar { font-size: 0.72rem; color: #999; margin-bottom: 2px; }
+    .product-category { font-size: 0.72rem; color: #bbb; margin-bottom: 8px; }
+    .product-footer { display: flex; justify-content: space-between; align-items: center; }
+    .product-price { font-size: 1rem; font-weight: bold; color: #e94560; }
+    .add-btn { background: #e94560; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    /* FULL PAGE */
+    .full-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 500; overflow-y: auto; }
+    .full-page.open { display: block; }
+
+    /* PAGE HEADER */
+    .page-header { background: #1a1a2e; padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 10; }
+    .back-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+    .page-header h3 { color: white; font-size: 1.1rem; }
+
+    /* DETAIL PAGE */
+    .detail-hero { height: 220px; background: linear-gradient(135deg, #1a1a2e, #e94560); display: flex; align-items: center; justify-content: center; font-size: 6rem; }
+    .detail-body { padding: 20px; }
+    .detail-name { font-size: 1.6rem; font-weight: bold; color: #333; margin-bottom: 5px; }
+    .detail-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .detail-bar { font-size: 0.9rem; color: #777; }
+    .detail-rating { background: #f5a623; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+    .detail-price { font-size: 1.8rem; font-weight: bold; color: #e94560; margin-bottom: 15px; }
+    .detail-desc { color: #555; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px; }
+    .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tag { background: #f0f0f0; color: #555; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; }
+    .qty-selector { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+    .qty-selector label { font-weight: bold; color: #333; }
+    .qty-control { display: flex; align-items: center; gap: 12px; background: #f2f2f2; padding: 8px 15px; border-radius: 25px; }
+    .qty-control button { background: #e94560; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+    .qty-control span { font-weight: bold; font-size: 1.1rem; min-width: 20px; text-align: center; }
+
+    /* REVIEWS */
+    .reviews-section { margin-bottom: 20px; }
+    .reviews-section h3 { font-size: 1.1rem; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .review-card { background: #f9f9f9; border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+    .review-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .reviewer-name { font-weight: bold; font-size: 0.9rem; color: #333; }
+    .review-stars { color: #f5a623; font-size: 0.9rem; }
+    .review-text { color: #666; font-size: 0.88rem; line-height: 1.5; }
+    .review-date { color: #bbb; font-size: 0.78rem; margin-top: 5px; }
+
+    /* STICKY FOOTER */
+    .sticky-footer { position: sticky; bottom: 0; background: white; padding: 15px 20px; border-top: 1px solid #eee; }
+    .big-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #e94560, #c62a47); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+
+    /* ORDER PAGE */
+    .order-section { padding: 20px; }
+    .order-section h3 { font-size: 1rem; font-weight: bold; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+    .order-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .order-item-left { display: flex; align-items: center; gap: 12px; }
+    .order-item-emoji { font-size: 2rem; }
+    .order-item-name { font-weight: bold; font-size: 0.95rem; color: #333; }
+    .order-item-bar { font-size: 0.78rem; color: #999; }
+    .order-item-price { font-weight: bold; color: #e94560; }
+    .order-qty-controls { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+    .oqty-btn { background: #e94560; color: white; border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+    .bill-box { background: #f9f9f9; border-radius: 12px; padding: 15px; margin: 15px 0; }
+    .bill-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; color: #555; }
+    .bill-row.total { font-weight: bold; font-size: 1.1rem; color: #333; border-top: 1px solid #ddd; padding-top: 12px; margin-top: 5px; }
+    .address-box { background: #f9f9f9; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    .address-box label { font-size: 0.85rem; color: #777; display: block; margin-bottom: 6px; }
+    .address-box textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 0.9rem; outline: none; resize: none; background: white; }
+
+    /* PAYMENT PAGE */
+    .payment-methods { padding: 20px; }
+    .payment-methods h3 { font-size: 1rem; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .pay-option { display: flex; align-items: center; gap: 15px; padding: 15px; background: white; border-radius: 12px; margin-bottom: 12px; border: 2px solid #eee; cursor: pointer; transition: border 0.2s; }
+    .pay-option.selected { border-color: #e94560; background: #fff0f3; }
+    .pay-icon { font-size: 2rem; }
+    .pay-name { font-weight: bold; color: #333; font-size: 0.95rem; }
+    .pay-desc { font-size: 0.8rem; color: #999; margin-top: 2px; }
+    .pay-radio { margin-left: auto; width: 20px; height: 20px; accent-color: #e94560; }
+    .order-summary-box { margin: 20px; background: #f9f9f9; border-radius: 12px; padding: 15px; }
+    .order-summary-box h3 { font-size: 1rem; font-weight: bold; margin-bottom: 12px; color: #333; }
+
+    /* SUCCESS PAGE */
+    .success-page { padding: 40px 20px; text-align: center; }
+    .success-animation { font-size: 5rem; margin-bottom: 20px; animation: bounce 0.6s ease; }
+    @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+    .success-title { font-size: 1.8rem; font-weight: bold; color: #333; margin-bottom: 10px; }
+    .success-subtitle { color: #777; font-size: 1rem; margin-bottom: 30px; line-height: 1.6; }
+    .order-id-box { background: #f9f9f9; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+    .order-id-box label { font-size: 0.85rem; color: #999; }
+    .order-id-box p { font-size: 1.1rem; font-weight: bold; color: #333; margin-top: 5px; }
+    .tracking-box { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom: 25px; text-align: left; }
+    .tracking-box h3 { font-size: 1rem; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .track-step { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-start; }
+    .track-dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+    .track-dot.done { background: #00c864; }
+    .track-dot.active { background: #e94560; animation: pulse 1s infinite; }
+    .track-dot.pending { background: #ddd; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+    .track-info { flex: 1; }
+    .track-title { font-weight: bold; font-size: 0.9rem; color: #333; }
+    .track-desc { font-size: 0.8rem; color: #999; margin-top: 2px; }
+    .track-time { font-size: 0.78rem; color: #e94560; font-weight: bold; }
+
+    /* CART SIDEBAR */
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; }
+    .cart-modal { position: fixed; bottom: 0; right: 0; width: 380px; height: 100%; background: white; z-index: 300; transform: translateX(100%); transition: transform 0.3s; display: flex; flex-direction: column; }
+    .cart-modal.open { transform: translateX(0); }
+    .cart-header { padding: 20px; background: #1a1a2e; color: white; display: flex; justify-content: space-between; align-items: center; }
+    .cart-header h3 { font-size: 1.2rem; }
+    .close-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+    .cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+    .cart-item-name { font-weight: bold; font-size: 0.9rem; }
+    .cart-item-bar { font-size: 0.78rem; color: #999; }
+    .cart-item-price { color: #e94560; font-weight: bold; margin-top: 3px; }
+    .cqty-controls { display: flex; align-items: center; gap: 10px; }
+    .cqty-btn { background: #e94560; color: white; border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+    .cart-footer { padding: 20px; border-top: 1px solid #eee; }
+    .cart-total { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 1.1rem; }
+    .checkout-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #e94560, #c62a47); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+    .empty-cart { text-align: center; color: #aaa; padding: 40px 20px; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 25px; font-size: 0.9rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- =================== SHOP PAGE =================== -->
+<div id="shopPage">
+  <div class="header">
+    <div>
+      <div class="logo">🍺 BrewDash</div>
+      <div class="location">📍 Delivering to your location</div>
+    </div>
+    <div class="right">
+      <span class="user-name" id="userName"></span>
+      <button class="cart-btn" onclick="openCart()">🛒 Cart <span class="badge" id="cartCount">0</span></button>
+    </div>
+  </div>
+  <div class="banner">
+    <h1>🍺 Drinks & Bites Delivered!</h1>
+    <p>Order drinks, snacks & food — delivered in 30 mins 🚀</p>
+  </div>
+  <div class="search-box">
+    <input type="text" placeholder="🔍 Search drinks, food, snacks..." oninput="searchProducts(this.value)" />
+  </div>
+  <div class="categories">
+    <h2>Categories</h2>
+    <div class="cat-list">
+      <div class="cat-item active" onclick="filterCategory('all',this)"><div class="cat-icon">🍾</div><div class="cat-name">All</div></div>
+      <div class="cat-item" onclick="filterCategory('beer',this)"><div class="cat-icon">🍺</div><div class="cat-name">Beer</div></div>
+      <div class="cat-item" onclick="filterCategory('wine',this)"><div class="cat-icon">🍷</div><div class="cat-name">Wine</div></div>
+      <div class="cat-item" onclick="filterCategory('whiskey',this)"><div class="cat-icon">🥃</div><div class="cat-name">Whiskey</div></div>
+      <div class="cat-item" onclick="filterCategory('vodka',this)"><div class="cat-icon">🍸</div><div class="cat-name">Vodka</div></div>
+      <div class="cat-item" onclick="filterCategory('rum',this)"><div class="cat-icon">🍹</div><div class="cat-name">Rum</div></div>
+      <div class="cat-item" onclick="filterCategory('food',this)"><div class="cat-icon">🍗</div><div class="cat-name">Food</div></div>
+      <div class="cat-item" onclick="filterCategory('snacks',this)"><div class="cat-icon">🥜</div><div class="cat-name">Snacks</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">⭐ Recommended For You</div>
+    <div class="h-scroll" id="recommendedList"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">🔥 Popular Items</div>
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+</div>
+
+<!-- =================== DETAIL PAGE =================== -->
+<div class="full-page" id="detailPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="closePage('detailPage')">←</button>
+    <h3 id="detailHeaderName">Product Details</h3>
+  </div>
+  <div class="detail-hero" id="detailHero"></div>
+  <div class="detail-body">
+    <div class="detail-name" id="detailName"></div>
+    <div class="detail-bar-row">
+      <div class="detail-bar" id="detailBar"></div>
+      <div class="detail-rating" id="detailRating"></div>
+    </div>
+    <div class="detail-price" id="detailPrice"></div>
+    <div class="detail-desc" id="detailDesc"></div>
+    <div class="detail-tags" id="detailTags"></div>
+    <div class="qty-selector">
+      <label>Quantity:</label>
+      <div class="qty-control">
+        <button onclick="changeDetailQty(-1)">-</button>
+        <span id="detailQty">1</span>
+        <button onclick="changeDetailQty(1)">+</button>
+      </div>
+    </div>
+    <div class="reviews-section">
+      <h3>⭐ Customer Reviews</h3>
+      <div id="reviewsList"></div>
+    </div>
+  </div>
+  <div class="sticky-footer">
+    <button class="big-btn" id="detailAddBtn">🛒 Add to Cart</button>
+  </div>
+</div>
+
+<!-- =================== ORDER PAGE =================== -->
+<div class="full-page" id="orderPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="closePage('orderPage')">←</button>
+    <h3>Your Order</h3>
+  </div>
+  <div class="order-section">
+    <h3>🛒 Order Items</h3>
+    <div id="orderItemsList"></div>
+    <div class="address-box">
+      <label>📍 Delivery Address</label>
+      <textarea id="deliveryAddress" rows="3" placeholder="Enter your full delivery address..."></textarea>
+    </div>
+    <div class="bill-box">
+      <h3 style="margin-bottom:10px;font-size:0.95rem;">🧾 Bill Details</h3>
+      <div class="bill-row"><span>Item Total</span><span id="billItemTotal">₹0</span></div>
+      <div class="bill-row"><span>Delivery Fee</span><span>₹30</span></div>
+      <div class="bill-row"><span>Taxes (5%)</span><span id="billTax">₹0</span></div>
+      <div class="bill-row total"><span>Total Amount</span><span id="billTotal">₹0</span></div>
+    </div>
+  </div>
+  <div class="sticky-footer">
+    <button class="big-btn" onclick="goToPayment()">Proceed to Payment →</button>
+  </div>
+</div>
+
+<!-- =================== PAYMENT PAGE =================== -->
+<div class="full-page" id="paymentPage">
+  <div class="page-header">
+    <button class="back-btn" onclick="closePage('paymentPage')">←</button>
+    <h3>Payment</h3>
+  </div>
+  <div class="order-summary-box">
+    <h3>Order Summary</h3>
+    <div class="bill-row"><span>Items</span><span id="payItemCount"></span></div>
+    <div class="bill-row total"><span>Total Amount</span><span id="payTotal"></span></div>
+  </div>
+  <div class="payment-methods">
+    <h3>💳 Select Payment Method</h3>
+    <div class="pay-option selected" onclick="selectPay(this,'online')">
+      <div class="pay-icon">📱</div>
+      <div><div class="pay-name">Online Payment</div><div class="pay-desc">UPI, Cards, Net Banking</div></div>
+      <input type="radio" class="pay-radio" name="pay" checked />
+    </div>
+    <div class="pay-option" onclick="selectPay(this,'cash')">
+      <div class="pay-icon">💵</div>
+      <div><div class="pay-name">Cash on Delivery</div><div class="pay-desc">Pay when order arrives</div></div>
+      <input type="radio" class="pay-radio" name="pay" />
+    </div>
+    <div class="pay-option" onclick="selectPay(this,'upi')">
+      <div class="pay-icon">⚡</div>
+      <div><div class="pay-name">UPI</div><div class="pay-desc">GPay, PhonePe, Paytm</div></div>
+      <input type="radio" class="pay-radio" name="pay" />
+    </div>
+  </div>
+  <div class="sticky-footer">
+    <button class="big-btn" onclick="placeOrder()">✅ Place Order</button>
+  </div>
+</div>
+
+<!-- =================== SUCCESS PAGE =================== -->
+<div class="full-page" id="successPage">
+  <div class="success-page">
+    <div class="success-animation">🎉</div>
+    <div class="success-title">Order Placed!</div>
+    <div class="success-subtitle">Your order has been placed successfully!<br>Sit back and relax 🍺</div>
+    <div class="order-id-box">
+      <label>Order ID</label>
+      <p id="successOrderId">#BD123456</p>
+    </div>
+    <div class="tracking-box">
+      <h3>📍 Live Order Tracking</h3>
+      <div class="track-step">
+        <div class="track-dot done"></div>
+        <div class="track-info">
+          <div class="track-title">✅ Order Confirmed</div>
+          <div class="track-desc">Your order has been received</div>
+          <div class="track-time">Just now</div>
+        </div>
+      </div>
+      <div class="track-step">
+        <div class="track-dot active"></div>
+        <div class="track-info">
+          <div class="track-title">📦 Preparing Order</div>
+          <div class="track-desc">Your items are being packed</div>
+          <div class="track-time">Est. 5 mins</div>
+        </div>
+      </div>
+      <div class="track-step">
+        <div class="track-dot pending"></div>
+        <div class="track-info">
+          <div class="track-title">🛵 Out for Delivery</div>
+          <div class="track-desc">Delivery boy is on the way</div>
+          <div class="track-time">Est. 15 mins</div>
+        </div>
+      </div>
+      <div class="track-step">
+        <div class="track-dot pending"></div>
+        <div class="track-info">
+          <div class="track-title">🏠 Delivered</div>
+          <div class="track-desc">Enjoy your order!</div>
+          <div class="track-time">Est. 30 mins</div>
+        </div>
+      </div>
+    </div>
+    <button class="big-btn" onclick="goBackToShop()">🛒 Order More</button>
+  </div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="cart-modal" id="cartModal">
+  <div class="cart-header">
+    <h3>🛒 Your Cart</h3>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Total:</span><span id="cartTotal">₹0</span></div>
+    <button class="checkout-btn" onclick="goToOrder()">Proceed to Order →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) window.location.href = '/';
+  document.getElementById('userName').textContent = '👤 ' + user.name;
+
+  const allProducts = [
+    { id:1, name:'Kingfisher Strong', category:'beer', price:120, emoji:'🍺', bar:'City Bar & Grill', rating:4.5, description:'Strong premium beer, 500ml. India\'s most loved beer with a smooth and refreshing taste.', tags:['500ml','Strong','Chilled'], reviews:[{name:'Rahul K',stars:5,text:'Best beer ever! Always fresh and cold.',date:'2 days ago'},{name:'Priya S',stars:4,text:'Great taste, quick delivery!',date:'1 week ago'}], recommended:true },
+    { id:2, name:'Budweiser', category:'beer', price:150, emoji:'🍺', bar:'The Brew House', rating:4.3, description:'Premium American lager, 500ml. Crisp, clean taste that goes great with any occasion.', tags:['500ml','Lager','Premium'], reviews:[{name:'Arun M',stars:4,text:'Smooth and refreshing. Perfect for parties!',date:'3 days ago'}], recommended:true },
+    { id:3, name:'Corona Extra', category:'beer', price:180, emoji:'🍺', bar:'Sunset Lounge', rating:4.6, description:'Mexican lager, 355ml. Best served with lime. Light and refreshing tropical taste.', tags:['355ml','Mexican','Light'], reviews:[{name:'Sneha R',stars:5,text:'Love Corona! Best with lime.',date:'5 days ago'}], recommended:false },
+    { id:4, name:'Sula Red Wine', category:'wine', price:650, emoji:'🍷', bar:'Wine & Dine', rating:4.4, description:'Premium Indian red wine, 750ml. Rich, fruity and full-bodied with notes of cherry and oak.', tags:['750ml','Red','Indian'], reviews:[{name:'Kavya T',stars:5,text:'Excellent wine for the price.',date:'1 week ago'}], recommended:true },
+    { id:5, name:'Jacob\'s Creek', category:'wine', price:900, emoji:'🍷', bar:'The Fine Cellar', rating:4.7, description:'Australian white wine, 750ml. Light, crisp and refreshing with hints of citrus.', tags:['750ml','White','Australian'], reviews:[{name:'Vikram N',stars:5,text:'World class wine. Perfect for dinner.',date:'2 weeks ago'}], recommended:false },
+    { id:6, name:'Royal Stag', category:'whiskey', price:550, emoji:'🥃', bar:'The Scotch Corner', rating:4.2, description:'Premium Indian whiskey, 750ml. Smooth, bold and perfect with soda or on the rocks.', tags:['750ml','Blended','Indian'], reviews:[{name:'Suresh P',stars:4,text:'Great value for money.',date:'4 days ago'}], recommended:true },
+    { id:7, name:'Black Label', category:'whiskey', price:3500, emoji:'🥃', bar:'The Elite Bar', rating:4.9, description:'Johnnie Walker Black Label, 750ml. Aged 12 years. Rich, smoky and complex flavours.', tags:['750ml','Scotch','12 Years'], reviews:[{name:'Arjun D',stars:5,text:'Absolutely premium. Worth every rupee!',date:'1 week ago'},{name:'Meera G',stars:5,text:'The best whiskey I\'ve ever had!',date:'3 weeks ago'}], recommended:true },
+    { id:8, name:'Blenders Pride', category:'whiskey', price:1200, emoji:'🥃', bar:'The Scotch Corner', rating:4.5, description:'Premium blended Scotch whisky, 750ml. Smooth with a hint of vanilla and honey.', tags:['750ml','Scotch','Premium'], reviews:[{name:'Kiran B',stars:5,text:'My go-to whiskey for parties!',date:'6 days ago'}], recommended:false },
+    { id:9, name:'Absolut Vodka', category:'vodka', price:1200, emoji:'🍸', bar:'Club Nights', rating:4.6, description:'Swedish premium vodka, 750ml. Pure, smooth and clean. Perfect for cocktails.', tags:['750ml','Swedish','Premium'], reviews:[{name:'Divya R',stars:5,text:'Best vodka for cocktails!',date:'2 days ago'}], recommended:true },
+    { id:10, name:'Magic Moments', category:'vodka', price:450, emoji:'🍸', bar:'The Night Owl', rating:4.1, description:'Indian premium vodka, 750ml. Clean, crisp and affordable. Great for mixing.', tags:['750ml','Indian','Value'], reviews:[{name:'Raj S',stars:4,text:'Great value vodka.',date:'1 week ago'}], recommended:false },
+    { id:11, name:'Old Monk', category:'rum', price:350, emoji:'🍹', bar:'Retro Bar', rating:4.8, description:'Dark rum, 750ml. India\'s iconic rum with rich caramel and vanilla notes. A legend!', tags:['750ml','Dark','Iconic'], reviews:[{name:'Mohan L',stars:5,text:'A legend! Nothing beats Old Monk.',date:'3 days ago'},{name:'Asha K',stars:5,text:'Classic taste. My all time favourite!',date:'1 week ago'}], recommended:true },
+    { id:12, name:'Bacardi White', category:'rum', price:600, emoji:'🍹', bar:'Beach Bar', rating:4.4, description:'White rum, 750ml. Light, clean and mixable. Perfect for mojitos and daiquiris.', tags:['750ml','White','Mixable'], reviews:[{name:'Tina M',stars:4,text:'Perfect for mojitos!',date:'5 days ago'}], recommended:false },
+    { id:13, name:'Fish Fry', category:'food', price:280, emoji:'🐟', bar:'Coastal Kitchen', rating:4.7, description:'Crispy fried fish marinated in spices, served with onion and lemon. Best partner for drinks!', tags:['Spicy','Crispy','Seafood'], reviews:[{name:'Ravi P',stars:5,text:'Amazing fish fry! Goes perfectly with beer.',date:'1 day ago'},{name:'Anita S',stars:5,text:'Authentic coastal taste. Loved it!',date:'4 days ago'}], recommended:true },
+    { id:14, name:'Chicken 65', category:'food', price:320, emoji:'🍗', bar:'Spice Garden', rating:4.8, description:'Deep fried spicy chicken, 65 style. Crispy outside, juicy inside. Classic bar snack!', tags:['Spicy','Chicken','Crispy'], reviews:[{name:'Kumar V',stars:5,text:'Best Chicken 65 in town!',date:'2 days ago'}], recommended:true },
+    { id:15, name:'Mutton Kebab', category:'food', price:450, emoji:'🍢', bar:'Grill House', rating:4.6, description:'Tender mutton kebabs grilled to perfection with aromatic spices.', tags:['Grilled','Mutton','Spicy'], reviews:[{name:'Farhan A',stars:5,text:'Melt in mouth kebabs!',date:'3 days ago'}], recommended:false },
+    { id:16, name:'Prawn Masala', category:'food', price:380, emoji:'🦐', bar:'Coastal Kitchen', rating:4.5, description:'Juicy prawns cooked in spicy masala gravy. Rich, flavourful and delicious!', tags:['Spicy','Seafood','Masala'], reviews:[{name:'Deepa R',stars:5,text:'Delicious prawns! Fresh and spicy.',date:'1 week ago'}], recommended:true },
+    { id:17, name:'Peanut Masala', category:'snacks', price:80, emoji:'🥜', bar:'Snack Bar', rating:4.2, description:'Roasted peanuts tossed with onion, tomato, lemon and spices. Perfect drinking snack!', tags:['Crunchy','Spicy','Veg'], reviews:[{name:'Sunil T',stars:4,text:'Classic snack. Perfect with beer!',date:'2 days ago'}], recommended:false },
+    { id:18, name:'Chicken Wings', category:'snacks', price:299, emoji:'🍖', bar:'Wing Stop', rating:4.6, description:'Crispy fried chicken wings with tangy dipping sauce. Party favourite!', tags:['Crispy','Chicken','Party'], reviews:[{name:'Neha M',stars:5,text:'Amazing wings! Super crispy and tasty.',date:'3 days ago'}], recommended:true },
+  ];
+
+  let cart = [];
+  let currentProduct = null;
+  let detailQty = 1;
+  let selectedPayment = 'online';
+  let pageStack = [];
+
+  // ===== NAVIGATION =====
+  function openPage(pageId) {
+    pageStack.push(pageId);
+    document.getElementById(pageId).classList.add('open');
+    window.scrollTo(0,0);
+  }
+  function closePage(pageId) {
+    document.getElementById(pageId).classList.remove('open');
+    pageStack.pop();
+  }
+
+  // ===== RENDER =====
+  function renderRecommended() {
+    document.getElementById('recommendedList').innerHTML = allProducts.filter(p=>p.recommended).map(p=>`
+      <div class="rec-card" onclick="openDetail(${p.id})">
+        <div class="rec-img">${p.emoji}</div>
+        <div class="rec-info">
+          <div class="rec-name">${p.name}</div>
+          <div class="rec-bar">🏪 ${p.bar}</div>
+          <div class="rec-footer">
+            <div class="rec-price">₹${p.price}</div>
+            <div class="rec-rating">⭐ ${p.rating}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!products.length) { grid.innerHTML='<p style="color:#aaa;text-align:center;grid-column:1/-1;padding:40px">No items found</p>'; return; }
+    grid.innerHTML = products.map(p=>`
+      <div class="product-card" onclick="openDetail(${p.id})">
+        <div class="product-img">${p.emoji}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-bar">🏪 ${p.bar}</div>
+          <div class="product-category">${p.category.toUpperCase()} • ⭐ ${p.rating}</div>
+          <div class="product-footer">
+            <div class="product-price">₹${p.price}</div>
+            <button class="add-btn" onclick="event.stopPropagation();addToCart(${p.id},1)">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== DETAIL PAGE =====
+  function openDetail(id) {
+    currentProduct = allProducts.find(p=>p.id===id);
+    detailQty = 1;
+    document.getElementById('detailHeaderName').textContent = currentProduct.name;
+    document.getElementById('detailHero').textContent = currentProduct.emoji;
+    document.getElementById('detailName').textContent = currentProduct.name;
+    document.getElementById('detailBar').textContent = '🏪 ' + currentProduct.bar;
+    document.getElementById('detailRating').textContent = '⭐ ' + currentProduct.rating;
+    document.getElementById('detailPrice').textContent = '₹' + currentProduct.price;
+    document.getElementById('detailDesc').textContent = currentProduct.description;
+    document.getElementById('detailTags').innerHTML = currentProduct.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+    document.getElementById('detailQty').textContent = detailQty;
+    document.getElementById('reviewsList').innerHTML = currentProduct.reviews.map(r=>`
+      <div class="review-card">
+        <div class="review-top">
+          <div class="reviewer-name">👤 ${r.name}</div>
+          <div class="review-stars">${'⭐'.repeat(r.stars)}</div>
+        </div>
+        <div class="review-text">${r.text}</div>
+        <div class="review-date">${r.date}</div>
+      </div>
+    `).join('');
+    document.getElementById('detailAddBtn').onclick = () => {
+      addToCart(currentProduct.id, detailQty);
+      closePage('detailPage');
+    };
+    openPage('detailPage');
+  }
+
+  function changeDetailQty(change) {
+    detailQty = Math.max(1, detailQty + change);
+    document.getElementById('detailQty').textContent = detailQty;
+  }
+
+  // ===== CART =====
+  function addToCart(id, qty) {
+    const product = allProducts.find(p=>p.id===id);
+    const existing = cart.find(c=>c.id===id);
+    if (existing) { existing.qty += qty; } else { cart.push({...product, qty}); }
+    updateCart();
+    showToast('✅ ' + product.name + ' added to cart!');
+  }
+
+  function updateCart() {
+    const count = cart.reduce((a,c)=>a+c.qty,0);
+    const total = cart.reduce((a,c)=>a+c.price*c.qty,0);
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotal').textContent = '₹'+total;
+    const cartItems = document.getElementById('cartItems');
+    if (!cart.length) { cartItems.innerHTML='<div class="empty-cart">🛒<br><br>Your cart is empty!</div>'; return; }
+    cartItems.innerHTML = cart.map(item=>`
+      <div class="cart-item">
+        <div>
+          <div class="cart-item-name">${item.emoji} ${item.name}</div>
+          <div class="cart-item-bar">🏪 ${item.bar}</div>
+          <div class="cart-item-price">₹${item.price * item.qty}</div>
+        </div>
+        <div class="cqty-controls">
+          <button class="cqty-btn" onclick="changeCartQty(${item.id},-1)">-</button>
+          <span>${item.qty}</span>
+          <button class="cqty-btn" onclick="changeCartQty(${item.id},1)">+</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function changeCartQty(id, change) {
+    const item = cart.find(c=>c.id===id);
+    if (item) { item.qty += change; if (item.qty<=0) cart=cart.filter(c=>c.id!==id); }
+    updateCart();
+  }
+
+  function openCart() {
+    document.getElementById('cartModal').classList.add('open');
+    document.getElementById('overlay').style.display='block';
+  }
+  function closeCart() {
+    document.getElementById('cartModal').classList.remove('open');
+    document.getElementById('overlay').style.display='none';
+  }
+
+  // ===== ORDER PAGE =====
+  function goToOrder() {
+    if (!cart.length) { alert('Your cart is empty!'); return; }
+    closeCart();
+    const itemTotal = cart.reduce((a,c)=>a+c.price*c.qty,0);
+    const tax = Math.round(itemTotal * 0.05);
+    const total = itemTotal + 30 + tax;
+    document.getElementById('orderItemsList').innerHTML = cart.map(item=>`
+      <div class="order-item">
+        <div class="order-item-left">
+          <div class="order-item-emoji">${item.emoji}</div>
+          <div>
+            <div class="order-item-name">${item.name}</div>
+            <div class="order-item-bar">🏪 ${item.bar}</div>
+            <div class="order-qty-controls">
+              <button class="oqty-btn" onclick="changeCartQty(${item.id},-1);goToOrder()">-</button>
+              <span>${item.qty}</span>
+              <button class="oqty-btn" onclick="changeCartQty(${item.id},1);goToOrder()">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="order-item-price">₹${item.price*item.qty}</div>
+      </div>
+    `).join('');
+    document.getElementById('billItemTotal').textContent = '₹'+itemTotal;
+    document.getElementById('billTax').textContent = '₹'+tax;
+    document.getElementById('billTotal').textContent = '₹'+total;
+    document.getElementById('deliveryAddress').value = user.address || '';
+    openPage('orderPage');
+  }
+
+  // ===== PAYMENT PAGE =====
+  function goToPayment() {
+    const address = document.getElementById('deliveryAddress').value.trim();
+    if (!address) { alert('Please enter delivery address!'); return; }
+    const itemTotal = cart.reduce((a,c)=>a+c.price*c.qty,0);
+    const tax = Math.round(itemTotal*0.05);
+    const total = itemTotal + 30 + tax;
+    document.getElementById('payItemCount').textContent = cart.reduce((a,c)=>a+c.qty,0) + ' items';
+    document.getElementById('payTotal').textContent = '₹'+total;
+    openPage('paymentPage');
+  }
+
+  function selectPay(el, method) {
+    document.querySelectorAll('.pay-option').forEach(o=>{o.classList.remove('selected'); o.querySelector('input').checked=false;});
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    selectedPayment = method;
+  }
+
+  // ===== PLACE ORDER =====
+  function placeOrder() {
+    const orderId = '#BD' + Math.floor(100000 + Math.random()*900000);
+    document.getElementById('successOrderId').textContent = orderId;
+    openPage('successPage');
+    cart = [];
+    updateCart();
+  }
+
+  function goBackToShop() {
+    ['successPage','paymentPage','orderPage','detailPage'].forEach(p=>{
+      document.getElementById(p).classList.remove('open');
+    });
+  }
+
+  // ===== FILTER & SEARCH =====
+  function filterCategory(cat, el) {
+    document.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+    renderProducts(cat==='all' ? [...allProducts] : allProducts.filter(p=>p.category===cat));
+  }
+
+  function searchProducts(query) {
+    const q = query.toLowerCase();
+    renderProducts(allProducts.filter(p=>p.name.toLowerCase().includes(q)||p.category.includes(q)||p.bar.toLowerCase().includes(q)));
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 2500);
+  }
+
+  // INIT
+  renderRecommended();
+  renderProducts(allProducts);
+  updateCart();
+</script>
+</body>
+</html>
